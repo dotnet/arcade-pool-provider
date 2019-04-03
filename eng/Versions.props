@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- This repo version -->
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta</PreReleaseVersionLabel>
+    <!-- Libs -->
+    <MicrosoftAzureKeyVaultVersion>3.0.0</MicrosoftAzureKeyVaultVersion>
+    <MicrosoftApplicationInsightsAspNetCoreVersion>2.5.1</MicrosoftApplicationInsightsAspNetCoreVersion>
+    <MicrosoftAzureServicesAppAuthenticationVersion>1.0.3</MicrosoftAzureServicesAppAuthenticationVersion>
+    <MicrosoftDotNetHelixJobSenderVersion>2.0.0-beta.19201.12</MicrosoftDotNetHelixJobSenderVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RestoreSources>
+      $(RestoreSources);
+      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
+    </RestoreSources>
+  </PropertyGroup>
+</Project>
