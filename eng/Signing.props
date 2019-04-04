@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- No files will be signed -->
+    <AllowEmptySignList>true</AllowEmptySignList>
+  </PropertyGroup>
+</Project>
