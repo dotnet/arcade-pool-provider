@@ -26,7 +26,7 @@ variables:
 jobs:
 - template: /eng/common/templates/jobs/jobs.yml
   parameters:
-    enableMicrobuild: true
+    enableMicrobuild: false
     enablePublishBuildArtifacts: true
     enablePublishBuildAssets: true
     enablePublishUsingPipelines: $(_PublishUsingPipelines)
@@ -73,7 +73,7 @@ jobs:
               _SignType: test
               _DotNetPublishToBlobFeed : false
             ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-              _SignType: real
+              _SignType: test
               _DotNetPublishToBlobFeed : true
           ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
             Build_Debug:
@@ -90,3 +90,14 @@ jobs:
           $(_InternalBuildArgs)
           /p:Test=false
         displayName: Windows Build / Publish
+      - task: DotNetCoreCLI@2
+        displayName: Publish
+        inputs:
+          command: publish
+          publishWebProjects: True
+          arguments: '--configuration $(_BuildConfig) --output $(build.artifactstagingdirectory)'
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact'
+        inputs:
+          pathtoPublish: '$(build.artifactstagingdirectory)'
+          artifactName: 'drop'
