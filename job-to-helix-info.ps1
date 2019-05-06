@@ -1,7 +1,11 @@
 ﻿param (
+    [Parameter(Mandatory=$true)]
     $buildUrl,
+    [Parameter(Mandatory=$true)]
     $azdoPat,
+    [Parameter(Mandatory=$true)]
     $appInsightsAppId,
+    [Parameter(Mandatory=$true)]
     $appInsightsKey
 )
 
@@ -19,6 +23,8 @@ $project = $null
 if ($buildUri.Host -eq "dev.azure.com") {
     $account = $buildUri.Segments[1].Replace("/", "")
     $project = $buildUri.Segments[2].Replace("/", "")
+} else {
+    throw "Please supply buildUrl in dev.azure.com/<account>/<project> form"
 }
 
 if ($buildUri.Query -match "buildId=(?<buildId>\d+)") {
