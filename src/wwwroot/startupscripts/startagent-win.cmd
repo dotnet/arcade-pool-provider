@@ -1,6 +1,11 @@
 set WORKSPACEPATH=%1
 REM Deleting %WORKSPACEPATH% in case it happens to be a file
 del /Q %WORKSPACEPATH%
+REM Kill known processes that might leave handles open
+taskkill -f -im msbuild.exe
+taskkill -f -im dotnet.exe
+taskkill -f -im vbcscompiler.exe
+taskkill -f -im devenv.exe
 rmdir /S /Q %WORKSPACEPATH%
 mkdir %WORKSPACEPATH%
 xcopy /Y /S /I %HELIX_CORRELATION_PAYLOAD%\* %WORKSPACEPATH%
