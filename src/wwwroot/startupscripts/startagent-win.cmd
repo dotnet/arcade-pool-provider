@@ -1,4 +1,3 @@
-SETLOCAL DisableDelayedExpansion
 set WORKSPACEPATH=%1
 REM Deleting %WORKSPACEPATH% in case it happens to be a file
 del /Q %WORKSPACEPATH%
