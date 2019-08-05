@@ -104,6 +104,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     .WithCommand(ConstructCommand())
                     .WithFiles(credentialsPath, agentSettingsPath, StartupScriptPath)
                     .WithTimeout(TimeSpan.FromMinutes((double)_configuration.TimeoutInMinutes))
+                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/")
                     .AttachToJob()
                     .SendAsync();
 
