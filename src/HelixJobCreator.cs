@@ -96,7 +96,6 @@ namespace Microsoft.DotNet.HelixPoolProvider
                 var job = await _api.Job.Define()
                     .WithType($"byoc/{_configuration.HelixCreator}/")
                     .WithTargetQueue(_queueInfo.QueueId)
-                    .WithCreator(_configuration.HelixCreator)
                     .WithContainerName(_configuration.ContainerName)
                     .WithCorrelationPayloadUris(AgentPayloadUri)
                     .WithStorageAccountConnectionString(_configuration.ConnectionString)
