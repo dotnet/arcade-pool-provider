@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.DotNet.HelixPoolProvider
@@ -28,31 +29,35 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
             public void OnActionExecuting(ActionExecutingContext context)
             {
-                if (!context.ModelState.IsValid)
+                if (context.ModelState.IsValid)
                 {
-                    LogValidationFailures(context);
-
-                    context.Result = new BadRequestObjectResult(context.ModelState);
+                    return;
                 }
+
+                LogValidationFailures(context);
+
+                context.Result = new BadRequestObjectResult(context.ModelState);
             }
 
             private void LogValidationFailures(ActionContext context)
             {
                 StringBuilder errorString = new StringBuilder();
-                foreach (var (prop, entry) in context.ModelState)
+                foreach ((string prop, ModelStateEntry entry) in context.ModelState)
                 {
-                    if (entry.Errors.Count > 0)
+                    if (entry.Errors == null || entry.Errors.Count <= 0)
                     {
-                        if (errorString.Length != 0)
-                        {
-                            errorString.Append(" | ");
-                        }
-
-                        errorString.Append(prop);
-                        errorString.Append(" : ");
-
-                        errorString.AppendJoin(", ", entry.Errors.Select(e => e.ErrorMessage));
+                        continue;
                     }
+
+                    if (errorString.Length != 0)
+                    {
+                        errorString.Append(" | ");
+                    }
+
+                    errorString.Append(prop);
+                    errorString.Append(" : ");
+
+                    errorString.AppendJoin(", ", entry.Errors.Select(e => e.ErrorMessage));
                 }
 
                 _logger.LogWarning("Invalid view state detected: {message}", errorString.ToString());
