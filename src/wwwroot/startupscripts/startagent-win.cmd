@@ -12,6 +12,7 @@ REM Sometimes killing the processes above fails; there could also be surprise ne
 REM As the disk here is big and the consequences of a dirty workspace are bad, let's make a new one.
 REM We'll always try to delete the existing ones in ascending order so if it's possible, we'll eventually clean up.
 IF NOT EXIST "%WORKSPACEPATH%" goto :CREATE_WORKSPACE
+set reboot_required=true
 set /a suffix=0
 :while
 set /a suffix+=1
@@ -29,6 +30,11 @@ copy /Y %HELIX_WORKITEM_PAYLOAD%\.credentials %WORKSPACEPATH%
 call %WORKSPACEPATH%\run.cmd
 
 set LASTEXITCODE=%errorlevel%
+
+REM At this point the agent job is done.  If we had a non-delete-able workspace,
+REM we'll want to reboot to kill any mystery processes left running which caused this.
+if "%reboot_required%"=="true" (call %HELIX_PYTHONPATH% -c "from helix.platformutil import reboot_machine; reboot_machine()" )
+
 if not "%LASTEXITCODE%" == "0" (
     echo "Unexpected error returned from agent: %LASTEXITCODE%"
     exit /b 1
