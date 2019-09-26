@@ -35,6 +35,9 @@ REM At this point the agent job is done.  If we had a non-delete-able workspace,
 REM we'll want to reboot to kill any mystery processes left running which caused this.
 if "%reboot_required%"=="true" (call %HELIX_PYTHONPATH% -c "from helix.platformutil import reboot_machine; reboot_machine()" )
 
+REM The above reboot prevents uploading logs; if we got past it, preserve the diag logs for future use.
+IF EXIST "%WORKSPACEPATH%\_diag" (xcopy /s /y "%WORKSPACEPATH%\_diag\*" "%HELIX_WORKITEM_UPLOAD_ROOT%" )
+
 if not "%LASTEXITCODE%" == "0" (
     echo "Unexpected error returned from agent: %LASTEXITCODE%"
     exit /b 1
