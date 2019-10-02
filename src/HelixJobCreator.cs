@@ -94,14 +94,12 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
                 // Now that we have a valid queue, construct the Helix job on that queue
                 var job = await _api.Job.Define()
-                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/")
                     .WithType($"byoc/{_configuration.HelixCreator}/")
-                    .WithBuild("1.0")
                     .WithTargetQueue(_queueInfo.QueueId)
-                    .WithCreator(_configuration.HelixCreator)
                     .WithContainerName(_configuration.ContainerName)
                     .WithCorrelationPayloadUris(AgentPayloadUri)
                     .WithStorageAccountConnectionString(_configuration.ConnectionString)
+                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/")
                     .DefineWorkItem(_agentRequestItem.agentId)
                     .WithCommand(ConstructCommand())
                     .WithFiles(credentialsPath, agentSettingsPath, StartupScriptPath)

@@ -17,10 +17,16 @@ $workspace_path/run.sh
 
 # Expect an exit code of 2, which is what is given when the agent connection is revoked
 lastexitcode=$?
+
+if [ -d "$workspace_path/_diag" ]; then
+  echo "Copying _diag folder to upload root"
+  cp -r "$workspace_path/_diag" $HELIX_WORKITEM_UPLOAD_ROOT
+fi
+
 if [[ $lastexitcode -ne 0 ]]; then
-	echo "Unexpected error returned from agent: $lastexitcode"
-	exit $lastexitcode
+    echo "Unexpected error returned from agent: $lastexitcode"
+    exit $lastexitcode
 else
-	echo "Agent disconnected successfully, exiting"
-	exit 0
+    echo "Agent disconnected successfully, exiting"
+    exit 0
 fi
