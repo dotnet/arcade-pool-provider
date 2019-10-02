@@ -8,7 +8,7 @@
     <MicrosoftAzureKeyVaultVersion>3.0.0</MicrosoftAzureKeyVaultVersion>
     <MicrosoftApplicationInsightsAspNetCoreVersion>2.5.1</MicrosoftApplicationInsightsAspNetCoreVersion>
     <MicrosoftAzureServicesAppAuthenticationVersion>1.0.3</MicrosoftAzureServicesAppAuthenticationVersion>
-    <MicrosoftDotNetHelixJobSenderVersion>5.0.0-beta.19480.3</MicrosoftDotNetHelixJobSenderVersion>
+    <MicrosoftDotNetHelixJobSenderVersion>5.0.0-beta.19501.4</MicrosoftDotNetHelixJobSenderVersion>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreSources>
