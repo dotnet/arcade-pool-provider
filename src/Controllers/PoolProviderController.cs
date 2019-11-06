@@ -15,6 +15,7 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.HelixPoolProvider.Controllers
@@ -93,7 +94,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         [HttpPost("/acquireagent", Name = nameof(AcquireAgent))]
         [ValidateModelState]
         [Authorize(Policy = "ValidAzDORequestSource")]
-        public async Task<IActionResult> AcquireAgent([FromBody] AgentAcquireItem agentRequestItem)
+        public async Task<IActionResult> AcquireAgent([FromBody] AgentAcquireItem agentRequestItem, CancellationToken cancellationToken)
         {
             (string orchestrationId, string jobName) = ExtractRequestSourceInfo();
 
@@ -105,7 +106,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 // 1. Determine what queue VSTS is asking for.
                 // 2. Determine whether such a queue exists in Helix (and whether we can use it)
                 // 3. If the queue exists, submit work to it.
-
                 string queueId;
                 try
                 {
@@ -131,7 +131,9 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 {
                     return Json(new AgentInfoItem() { accepted = false });
                 }
-                return Json(await jobCreator.CreateJob());
+                cancellationToken.ThrowIfCancellationRequested();
+                var agentInfoItem = await jobCreator.CreateJob(cancellationToken);
+                return Json(agentInfoItem);
             }
         }
 
@@ -230,7 +232,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         private string ExtractQueueId(object agentSpecification)
         {
             _logger.LogTrace($"Extracting target queue from agent spec {agentSpecification}");
-             
+
             if (agentSpecification == null)
             {
                 _logger.LogError("Agent specification is not present in agent request");
@@ -437,7 +439,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     var queueInfo = await api.Information.QueueInfoAsync(agentDefinitionId);
 
                     // Filter the queue info based on the allowable helix queues.
-                    if(!IsAllowableQueue(queueInfo))
+                    if (!IsAllowableQueue(queueInfo))
                     {
                         return NotFound();
                     }
