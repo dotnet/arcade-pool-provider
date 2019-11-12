@@ -87,10 +87,12 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
             try
             {
-                _logger.LogInformation($"Submitting new Helix job to queue {_queueInfo.QueueId} for agent id {_agentRequestItem.agentId}");
+                _logger.LogInformation($"Creating payloads for agent id {_agentRequestItem.agentId}");
 
                 credentialsPath = CreateAgentCredentialsPayload();
                 agentSettingsPath = CreateAgentSettingsPayload();
+
+                _logger.LogInformation($"Submitting new Helix job to queue {_queueInfo.QueueId} for agent id {_agentRequestItem.agentId}");
 
                 // Now that we have a valid queue, construct the Helix job on that queue
                 var job = await _api.Job.Define()
@@ -98,7 +100,6 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     .WithTargetQueue(_queueInfo.QueueId)
                     .WithContainerName(_configuration.ContainerName)
                     .WithCorrelationPayloadUris(AgentPayloadUri)
-                    .WithStorageAccountConnectionString(_configuration.ConnectionString)
                     .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/")
                     .DefineWorkItem(_agentRequestItem.agentId)
                     .WithCommand(ConstructCommand())
@@ -107,8 +108,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     .AttachToJob()
                     .SendAsync();
 
-                _logger.LogInformation("Successfully submitted new Helix job {helixJob} (work item {workItemName}) to queue {queueId}",
-                    job.CorrelationId, _agentRequestItem.agentId, _queueInfo.QueueId);
+                _logger.LogInformation($"Successfully submitted new Helix job {job.CorrelationId} (Agent id {_agentRequestItem.agentId}) to queue { _queueInfo.QueueId}");
 
                 // TODO Add extra info into the agent info item blob
                 return new AgentInfoItem()
