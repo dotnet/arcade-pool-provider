@@ -118,6 +118,9 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     .SendAsync(null, cancellationToken);
                 _logger.LogInformation($"Successfully submitted new Helix job {job.CorrelationId} (Agent id {_agentRequestItem.agentId}) to queue { _queueInfo.QueueId}");
 
+                // In case the cancellation token got signalled between above and here, let's try to cancel the Helix Job.
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // TODO Add extra info into the agent info item blob
                 return new AgentInfoItem()
                 {
