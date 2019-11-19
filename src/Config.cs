@@ -38,6 +38,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
         public string HelixEndpoint => _configuration[nameof(HelixEndpoint)];
         public int MaxParallelism => Int32.Parse(_configuration[nameof(MaxParallelism)]);
 
+
         public bool TryGetSecret(string secretName, out string secretValue)
         {
             try
