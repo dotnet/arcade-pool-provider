@@ -11,6 +11,7 @@ using Microsoft.Rest;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.HelixPoolProvider
@@ -80,10 +81,11 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         public string StartupScriptPath => _hostingEnvironment.WebRootFileProvider.GetFileInfo(Path.Combine("startupscripts", StartupScriptName)).PhysicalPath;
 
-        public async Task<AgentInfoItem> CreateJob()
+        public async Task<AgentInfoItem> CreateJob(CancellationToken cancellationToken)
         {
             string credentialsPath = null;
             string agentSettingsPath = null;
+            ISentJob job = null;
 
             try
             {
@@ -92,10 +94,17 @@ namespace Microsoft.DotNet.HelixPoolProvider
                 credentialsPath = CreateAgentCredentialsPayload();
                 agentSettingsPath = CreateAgentSettingsPayload();
 
-                _logger.LogInformation($"Submitting new Helix job to queue {_queueInfo.QueueId} for agent id {_agentRequestItem.agentId}");
-
                 // Now that we have a valid queue, construct the Helix job on that queue
-                var job = await _api.Job.Define()
+
+                /// Notes: if we timeout, it's going to be in the subsequent call.  
+                /// SendAsync() causes both the storage account container creation / uploads and sends to Helix API, which both can stall.
+                /// We have to do this this way (and non-ideal workarounds like trying to destroy the object won't likely solve this) because today
+                /// the job, if started, will still contain valid Azure DevOps tokens to be a build agent and we can't easily guarantee it doesn't get sent.
+                /// ********************************
+                /// The right long-term fix is for Azure DevOps to not have the tokens passed be usable until they've received an "accepted = true" response from our provider.
+                /// ********************************
+                cancellationToken.ThrowIfCancellationRequested();
+                job = await _api.Job.Define()
                     .WithType($"byoc/{_configuration.HelixCreator}/")
                     .WithTargetQueue(_queueInfo.QueueId)
                     .WithContainerName(_configuration.ContainerName)
@@ -106,9 +115,11 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     .WithFiles(credentialsPath, agentSettingsPath, StartupScriptPath)
                     .WithTimeout(TimeSpan.FromMinutes((double)_configuration.TimeoutInMinutes))
                     .AttachToJob()
-                    .SendAsync();
-
+                    .SendAsync(null, cancellationToken);
                 _logger.LogInformation($"Successfully submitted new Helix job {job.CorrelationId} (Agent id {_agentRequestItem.agentId}) to queue { _queueInfo.QueueId}");
+
+                // In case the cancellation token got signalled between above and here, let's try to cancel the Helix Job.
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // TODO Add extra info into the agent info item blob
                 return new AgentInfoItem()
@@ -124,6 +135,16 @@ namespace Microsoft.DotNet.HelixPoolProvider
             {
                 _logger.LogError(e, $"Failed to submit new Helix job to queue {_queueInfo.QueueId} for agent id {_agentRequestItem.agentId}: {e.Response.Content}");
 
+                return new AgentInfoItem() { accepted = false };
+            }
+            catch (OperationCanceledException ranOutOfTime) when (ranOutOfTime.CancellationToken == cancellationToken)
+            {
+                _logger.LogError($"Unable to complete request to create Helix job in specified timeout, attempting to cancel it.");
+                if (job != null && !string.IsNullOrEmpty(job.CorrelationId))
+                {
+                    await _api.Job.CancelAsync(job.CorrelationId);
+                    _logger.LogError($"Possible race condition: cancelled Helix Job '{job.CorrelationId}' may still run.");
+                }
                 return new AgentInfoItem() { accepted = false };
             }
             catch (Exception e)
