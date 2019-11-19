@@ -189,15 +189,12 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             IHelixApi api;
             if (isAnonymous)
             {
-                api = ApiFactory.GetAnonymous();
+                api = ApiFactory.GetAnonymous(_configuration.HelixEndpoint);
             }
             else
             {
-                api = ApiFactory.GetAuthenticated(_configuration.ApiAuthorizationPat);
+                api = ApiFactory.GetAuthenticated(_configuration.HelixEndpoint, _configuration.ApiAuthorizationPat);
             }
-            // Alter the base URI based on configuration.  It's also useful to note that in the current version of the API, the endpoint isn't
-            // defaulted to https, and so unless this is done every request will fail.
-            api.BaseUri = new Uri(_configuration.HelixEndpoint);
             return api;
         }
 
@@ -340,10 +337,8 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             {
                 _logger.LogTrace($"Looking up work item details for agent {workItemId} in Helix Job {correlationId}");
 
-                using (IHelixApi api = GetHelixApi(agentRequestStatusItem.agentData.isPublicQueue))
-                {
-                    workItemDetails = await api.WorkItem.DetailsAsync(correlationId, workItemId);
-                }
+                IHelixApi api = GetHelixApi(agentRequestStatusItem.agentData.isPublicQueue);
+                workItemDetails = await api.WorkItem.DetailsAsync(correlationId, workItemId);
             }
             catch (Exception e)
             {
@@ -402,18 +397,16 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             {
                 _logger.LogTrace($"Looking up available helix queues.");
 
-                using (IHelixApi api = GetHelixApi(false))
-                {
-                    var helixQueues = await api.Information.QueueInfoListAsync();
+                IHelixApi api = GetHelixApi(false);
+                var helixQueues = await api.Information.QueueInfoListAsync();
 
-                    AgentDefinitionsItem agentDefinitions = new AgentDefinitionsItem()
-                    {
-                        value = helixQueues.Where(q => IsAllowableQueue(q))
-                                           .Select<QueueInfo, AgentDefinitionItem>(q =>
-                                               new AgentDefinitionItem(q, GetAgentDefinitionUrl(q.QueueId))).ToList()
-                    };
-                    return new JsonResult(agentDefinitions);
-                }
+                AgentDefinitionsItem agentDefinitions = new AgentDefinitionsItem()
+                {
+                    value = helixQueues.Where(q => IsAllowableQueue(q))
+                                        .Select<QueueInfo, AgentDefinitionItem>(q =>
+                                            new AgentDefinitionItem(q, GetAgentDefinitionUrl(q.QueueId))).ToList()
+                };
+                return new JsonResult(agentDefinitions);
             }
             catch (Exception e)
             {
@@ -434,20 +427,18 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             {
                 _logger.LogTrace($"Looking helix queue named {agentDefinitionId}");
 
-                using (IHelixApi api = GetHelixApi(false))
+                IHelixApi api = GetHelixApi(false);
+                var queueInfo = await api.Information.QueueInfoAsync(agentDefinitionId);
+
+                // Filter the queue info based on the allowable helix queues.
+                if (!IsAllowableQueue(queueInfo))
                 {
-                    var queueInfo = await api.Information.QueueInfoAsync(agentDefinitionId);
-
-                    // Filter the queue info based on the allowable helix queues.
-                    if (!IsAllowableQueue(queueInfo))
-                    {
-                        return NotFound();
-                    }
-
-                    return new JsonResult(
-                        new AgentDefinitionItem(queueInfo, GetAgentDefinitionUrl(queueInfo.QueueId))
-                    );
+                    return NotFound();
                 }
+
+                return new JsonResult(
+                    new AgentDefinitionItem(queueInfo, GetAgentDefinitionUrl(queueInfo.QueueId))
+                );
             }
             catch (Exception e)
             {
