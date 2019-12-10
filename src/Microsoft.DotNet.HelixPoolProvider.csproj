@@ -18,12 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\startupscripts\startagent-win.cmd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="wwwroot\startupscripts\startagent-linux.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
