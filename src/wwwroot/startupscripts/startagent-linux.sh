@@ -8,6 +8,15 @@ sudo mkdir $workspace_path
 # Make it writeable
 sudo chmod -R 777 $workspace_path
 
+# Make its parents readable
+if [ -d "$workspace_path/.." ]; then
+  sudo chmod +r $workspace_path/..
+fi
+
+if [ -d "$workspace_path/../.." ]; then
+  sudo chmod +r $workspace_path/../..
+fi
+
 # copy .agent and .credentials files to workspace path
 cp -f -r $HELIX_CORRELATION_PAYLOAD/* $workspace_path
 cp -f $HELIX_WORKITEM_PAYLOAD/.agent $workspace_path
