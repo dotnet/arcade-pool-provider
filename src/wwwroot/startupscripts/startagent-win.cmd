@@ -50,6 +50,5 @@ if not "%LASTEXITCODE%" == "0" (
     exit /b 0
 )
 
-rmdir /S /Q %WORKSPACEPATH%
 echo "Requesting reboot to kill all processes"
-%HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Optional reason string')"
+%HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Reboot to kill all processes')"
