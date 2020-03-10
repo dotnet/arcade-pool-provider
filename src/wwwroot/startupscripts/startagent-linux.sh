@@ -2,6 +2,18 @@
 
 workspace_path=$1
 
+# Clean workspace
+sudo rm -r -f $workspace_path
+
+if [ -d "$workspace_path" ]; then
+	declare -i suffix=0
+	while [ -d "$workspace_path.$suffix" ]
+	do
+		suffix=$suffix+1
+	done
+	workspace_path=$workspace_path.$suffix
+fi
+
 # Make the workspace path directory.
 sudo mkdir $workspace_path
 
