@@ -49,3 +49,6 @@ if not "%LASTEXITCODE%" == "0" (
     echo "Agent disconnected successfully, exiting"
     exit /b 0
 )
+
+echo "Requesting reboot to kill all processes"
+%HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Reboot to kill all processes')"
