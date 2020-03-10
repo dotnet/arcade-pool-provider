@@ -6,14 +6,14 @@ workspace_path=$1
 sudo rm -r -f $workspace_path
 
 if [ -d "$workspace_path" ]; then
-	declare -i suffix=0
+  declare -i suffix=0
   sudo rm -r -f $workspace_path.$suffix
-	while [ -d "$workspace_path.$suffix" ]
-	do
-		suffix=$suffix+1
+  while [ -d "$workspace_path.$suffix" ]
+  do
+    suffix=$suffix+1
     sudo rm -r -f $workspace_path.$suffix
-	done
-	workspace_path=$workspace_path.$suffix
+  done
+  workspace_path=$workspace_path.$suffix
 fi
 
 # Make the workspace path directory.
@@ -47,9 +47,9 @@ if [ -d "$workspace_path/_diag" ]; then
 fi
 
 if [[ $lastexitcode -ne 0 ]]; then
-    echo "Unexpected error returned from agent: $lastexitcode"
-    exit $lastexitcode
+  echo "Unexpected error returned from agent: $lastexitcode"
+  exit $lastexitcode
 else
-    echo "Agent disconnected successfully, exiting"
-    exit 0
+  echo "Agent disconnected successfully, exiting"
+  exit 0
 fi
