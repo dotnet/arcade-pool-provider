@@ -2,6 +2,15 @@
 
 workspace_path=$1
 
+# Try to clean workspace 
+rm -r -f $workspace_path
+
+if [ -d "$workspace_path" ]; then
+	echo "Failed to clean workspace... requesting infra retry and reboot"
+	$HELIX_PYTHONPATH -c "from helix.workitemutil import request_infra_retry; request_infra_retry('Optional reason string')"
+	$HELIX_PYTHONPATH -c "from helix.workitemutil import request_reboot; request_reboot('Optional reason string')"
+fi
+
 # Make the workspace path directory.
 mkdir $workspace_path
 
