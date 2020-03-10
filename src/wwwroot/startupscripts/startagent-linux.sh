@@ -7,9 +7,11 @@ sudo rm -r -f $workspace_path
 
 if [ -d "$workspace_path" ]; then
 	declare -i suffix=0
+  sudo rm -r -f $workspace_path.$suffix
 	while [ -d "$workspace_path.$suffix" ]
 	do
 		suffix=$suffix+1
+    sudo rm -r -f $workspace_path.$suffix
 	done
 	workspace_path=$workspace_path.$suffix
 fi
