@@ -42,13 +42,14 @@ set LASTEXITCODE=%errorlevel%
 REM Preserve the diag logs for future use
 IF EXIST "%WORKSPACEPATH%\_diag" (xcopy /s /y "%WORKSPACEPATH%\_diag\*" "%HELIX_WORKITEM_UPLOAD_ROOT%" )
 
+echo Requesting reboot to kill all processes (including possible leaked AzDO agents)
+%HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Reboot to kill all processes')"
+
 if not "%LASTEXITCODE%" == "0" (
-    echo "Unexpected error returned from agent: %LASTEXITCODE%"
+    echo Unexpected error returned from agent: %LASTEXITCODE%
     exit /b 1
 ) else (
-    echo "Agent disconnected successfully, exiting"
+    echo Agent disconnected successfully, exiting
     exit /b 0
 )
 
-echo "Requesting reboot to kill all processes"
-%HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Reboot to kill all processes')"
