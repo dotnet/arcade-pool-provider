@@ -36,7 +36,7 @@ cp -f -r $HELIX_CORRELATION_PAYLOAD/* $workspace_path
 cp -f $HELIX_WORKITEM_PAYLOAD/.agent $workspace_path
 cp -f $HELIX_WORKITEM_PAYLOAD/.credentials $workspace_path
 
-$workspace_path/run.sh
+$workspace_path/run.sh --once
 
 # Expect an exit code of 2, which is what is given when the agent connection is revoked
 lastexitcode=$?
