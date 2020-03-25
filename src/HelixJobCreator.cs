@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,11 +82,13 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         public string StartupScriptPath => _hostingEnvironment.WebRootFileProvider.GetFileInfo(Path.Combine("startupscripts", StartupScriptName)).PhysicalPath;
 
-        public async Task<AgentInfoItem> CreateJob(CancellationToken cancellationToken)
+        public async Task<AgentInfoItem> CreateJob(
+            CancellationToken cancellationToken,
+            Dictionary<string, string> properties)
         {
             string credentialsPath = null;
             string agentSettingsPath = null;
-            ISentJob job = null;
+            ISentJob sentJob = null;
 
             try
             {
@@ -96,39 +99,53 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
                 // Now that we have a valid queue, construct the Helix job on that queue
 
-                /// Notes: if we timeout, it's going to be in the subsequent call.  
-                /// SendAsync() causes both the storage account container creation / uploads and sends to Helix API, which both can stall.
-                /// We have to do this this way (and non-ideal workarounds like trying to destroy the object won't likely solve this) because today
-                /// the job, if started, will still contain valid Azure DevOps tokens to be a build agent and we can't easily guarantee it doesn't get sent.
-                /// ********************************
-                /// The right long-term fix is for Azure DevOps to not have the tokens passed be usable until they've received an "accepted = true" response from our provider.
-                /// ********************************
+                // Notes: if we timeout, it's going to be in the subsequent call.  
+                // SendAsync() causes both the storage account container creation / uploads and sends to Helix API, which both can stall.
+                // We have to do this this way (and non-ideal workarounds like trying to destroy the object won't likely solve this) because today
+                // the job, if started, will still contain valid Azure DevOps tokens to be a build agent and we can't easily guarantee it doesn't get sent.
+                // ********************************
+                // The right long-term fix is for Azure DevOps to not have the tokens passed be usable until they've received an "accepted = true" response from our provider.
+                // ********************************
                 cancellationToken.ThrowIfCancellationRequested();
-                job = await _api.Job.Define()
+                IJobDefinition preparedJob = _api.Job.Define()
                     .WithType($"byoc/{_configuration.HelixCreator}/")
-                    .WithTargetQueue(_queueInfo.QueueId)
-                    .WithContainerName(_configuration.ContainerName)
+                    .WithTargetQueue(_queueInfo.QueueId);
+
+                if (properties != null)
+                {
+                    foreach ((string key, string value) in properties)
+                    {
+                        preparedJob.WithProperty(key, value);
+                    }
+                }
+
+                preparedJob = preparedJob.WithContainerName(_configuration.ContainerName)
                     .WithCorrelationPayloadUris(AgentPayloadUri)
-                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/")
-                    .DefineWorkItem(_agentRequestItem.agentId)
+                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/");
+
+                IWorkItemDefinition workitem = preparedJob.DefineWorkItem(_agentRequestItem.agentId)
                     .WithCommand(ConstructCommand())
                     .WithFiles(credentialsPath, agentSettingsPath, StartupScriptPath)
-                    .WithTimeout(TimeSpan.FromMinutes((double)_configuration.TimeoutInMinutes))
-                    .AttachToJob()
-                    .SendAsync(null, cancellationToken);
-                _logger.LogInformation($"Successfully submitted new Helix job {job.CorrelationId} (Agent id {_agentRequestItem.agentId}) to queue { _queueInfo.QueueId}");
+                    .WithTimeout(TimeSpan.FromMinutes(_configuration.TimeoutInMinutes));
+
+                preparedJob = workitem.AttachToJob();
+
+                sentJob = await preparedJob.SendAsync(l => _logger.LogInformation(l), cancellationToken);
+                _logger.LogInformation($"Successfully submitted new Helix job {sentJob.CorrelationId} (Agent id {_agentRequestItem.agentId}) to queue { _queueInfo.QueueId}");
 
                 // In case the cancellation token got signalled between above and here, let's try to cancel the Helix Job.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // TODO Add extra info into the agent info item blob
-                return new AgentInfoItem()
+                return new AgentInfoItem
                 {
                     accepted = true,
-                    agentData = new AgentDataItem() { correlationId = job.CorrelationId,
-                                                      queueId = _queueInfo.QueueId,
-                                                      workItemId = _agentRequestItem.agentId,
-                                                      isPublicQueue = !_queueInfo.IsInternalOnly.Value }
+                    agentData = new AgentDataItem
+                    {
+                        correlationId = sentJob.CorrelationId,
+                        queueId = _queueInfo.QueueId,
+                        workItemId = _agentRequestItem.agentId,
+                        isPublicQueue = !_queueInfo.IsInternalOnly.GetValueOrDefault(true)
+                    }
                 };
             }
             catch (HttpOperationException e)
@@ -140,18 +157,16 @@ namespace Microsoft.DotNet.HelixPoolProvider
             catch (OperationCanceledException ranOutOfTime) when (ranOutOfTime.CancellationToken == cancellationToken)
             {
                 _logger.LogError($"Unable to complete request to create Helix job in specified timeout, attempting to cancel it.");
-                if (job != null && !string.IsNullOrEmpty(job.CorrelationId))
+                if (sentJob != null && !string.IsNullOrEmpty(sentJob.CorrelationId))
                 {
-                    await _api.Job.CancelAsync(job.CorrelationId);
-                    _logger.LogError($"Possible race condition: cancelled Helix Job '{job.CorrelationId}' may still run.");
+                    await _api.Job.CancelAsync(sentJob.CorrelationId, CancellationToken.None);
+                    _logger.LogError($"Possible race condition: cancelled Helix Job '{sentJob.CorrelationId}' may still run.");
                 }
                 return new AgentInfoItem() { accepted = false };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, $"Failed to submit new Helix job to queue {_queueInfo.QueueId} for agent id {_agentRequestItem.agentId}");
-
-                // TODO Add extra info into the agent info item blob
                 return new AgentInfoItem() { accepted = false };
             }
             finally

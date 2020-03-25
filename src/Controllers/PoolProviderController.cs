@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -132,7 +133,14 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     return Json(new AgentInfoItem() { accepted = false });
                 }
                 cancellationToken.ThrowIfCancellationRequested();
-                var agentInfoItem = await jobCreator.CreateJob(cancellationToken);
+                Dictionary<string, string> properties = new Dictionary<string, string>
+                {
+                    {"AgentId", agentRequestItem.agentId},
+                    {"Pool", agentRequestItem.agentPool},
+                    {"OrchestrationId", orchestrationId},
+                    {"JobName", jobName},
+                };
+                var agentInfoItem = await jobCreator.CreateJob(cancellationToken, properties);
                 return Json(agentInfoItem);
             }
         }
