@@ -345,7 +345,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 // This means the call came back before we've provisioned it.  We don't have any meaningful
                 // response right now, so return the empty string to reflect "no status".
                 _logger.LogInformation("Status request has no agentData, returning empty status");
-                return Json("");
+                return NoContent();
             }
 
             WorkItemDetails workItemDetails;
