@@ -338,7 +338,15 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             // Need to know the job correlation id and work item id.
             // Work item id is the agent id, and job correlation is in the agent data.
             string workItemId = agentRequestStatusItem.agentId;
-            string correlationId = agentRequestStatusItem.agentData.correlationId;
+            string correlationId = agentRequestStatusItem.agentData?.correlationId;
+
+            if (string.IsNullOrEmpty(correlationId))
+            {
+                // This means the call came back before we've provisioned it.  We don't have any meaningful
+                // response right now, so return the empty string to reflect "no status".
+                _logger.LogInformation("Status request has no agentData, returning empty status");
+                return Json("");
+            }
 
             WorkItemDetails workItemDetails;
             try
