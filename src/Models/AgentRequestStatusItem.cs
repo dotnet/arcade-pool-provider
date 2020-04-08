@@ -12,7 +12,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Models
         public string agentId { get; set; }
         public string accountId { get; set; }
         public string agentPool { get; set; }
-        [Required]
         public AgentDataItem agentData { get; set; }
     }
 }
