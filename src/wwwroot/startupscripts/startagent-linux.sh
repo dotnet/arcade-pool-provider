@@ -46,6 +46,9 @@ if [ -d "$workspace_path/_diag" ]; then
   cp -r "$workspace_path/_diag" $HELIX_WORKITEM_UPLOAD_ROOT
 fi
 
+echo Requesting reboot after build completes
+$HELIX_PYTHONPATH -c "from helix.workitemutil import request_reboot; request_reboot('Reboot for build agent hygiene')"
+
 if [[ $lastexitcode -ne 0 ]]; then
   echo "Unexpected error returned from agent: $lastexitcode"
   exit $lastexitcode
