@@ -371,22 +371,22 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 case "passed":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Helix work item in job {correlationId} for agent {workItemId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State}"
+                        statusMessage = $"Work is in progress or complete. (Helix work item in job {correlationId} for agent {workItemId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State})"
                     });
                 case "unscheduled":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Helix work item in job {correlationId} for agent {workItemId} is currently {workItemDetails.State} or does not exist."
+                        statusMessage = $"Work has been submitted to the Helix API, but has not started yet (Helix work item in job {correlationId} for agent {workItemId} is currently in state '{workItemDetails.State}')"
                     });
                 case "waiting":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Helix work item in job {correlationId} for agent {workItemId} is currently waiting for a machine."
+                        statusMessage = $"Work has been submitted to the Helix API, and is waiting for a machine (Helix work item in job {correlationId} for agent {workItemId} is currently waiting for a machine.)"
                     });
                 case "failed":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Helix work item in job {correlationId} for agent {workItemId} failed.  Please check the logs."
+                        statusMessage = $"Error state: Please contact dnceng with Job Id (Helix work item in job {correlationId} for agent {workItemId} failed. Please check the logs.)"
                     });
                 default:
                     throw new NotImplementedException(
