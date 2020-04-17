@@ -305,7 +305,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         /// </summary>
         /// <param name="agentReleaseItem">Agent to release</param>
         /// <returns>Accepted.</returns>
-        /// <remarks>https://github.com/Microsoft/vsts-pool-providers/blob/master/docs/subdocs/httpspec.md#releaseagent---required</remarks
+        /// <remarks>https://github.com/Microsoft/vsts-pool-providers/blob/master/docs/subdocs/httpspec.md#releaseagent---required</remarks>
         [HttpPost("/releaseagent", Name = nameof(ReleaseAgent))]
         [ValidateModelState]
         [Authorize(Policy = "ValidAzDORequestSource")]
