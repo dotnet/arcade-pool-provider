@@ -16,7 +16,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
         private IConfiguration _configuration;
         private ILogger _logger;
 
-        private ConcurrentDictionary<string, string> _creds = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static ConcurrentDictionary<string, string> _creds = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public Config(IConfiguration config, ILoggerFactory loggerFactory)
         {
@@ -64,10 +64,12 @@ namespace Microsoft.DotNet.HelixPoolProvider
             string currentSecret;
             if (_creds.TryGetValue(secretName, out currentSecret))
             {
+                _logger.LogInformation($"Successfully fetched cached value for secret '{secretName}'");
                 return currentSecret;
             }
             else
             {
+                _logger.LogInformation($"Fetching value for secret '{secretName}' from Key Vault");
                 AzureServiceTokenProvider tokenProvider = new AzureServiceTokenProvider();
                 try
                 {
