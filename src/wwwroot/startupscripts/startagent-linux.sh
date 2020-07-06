@@ -49,6 +49,10 @@ fi
 echo Requesting reboot after build completes
 $HELIX_PYTHONPATH -c "from helix.workitemutil import request_reboot; request_reboot('Reboot for build agent hygiene')"
 
+# Repeat the deletion of the workspace directory because for very large builds this can take minutes to complete,
+# which counts towards the queue time of the build it picks up.
+sudo rm -r -f $workspace_path
+
 if [[ $lastexitcode -ne 0 ]]; then
   echo "Unexpected error returned from agent: $lastexitcode"
   exit $lastexitcode
