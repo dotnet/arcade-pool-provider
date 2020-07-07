@@ -30,7 +30,6 @@ if exist "%candidateworkspacepath%" goto :while
 set WORKSPACEPATH=%candidateworkspacepath%
 
 :CREATE_WORKSPACE
-rd /s /q %EMPTYDIR%
 mkdir %WORKSPACEPATH%
 xcopy /Y /S /I %HELIX_CORRELATION_PAYLOAD%\* %WORKSPACEPATH%
 copy /Y %HELIX_WORKITEM_PAYLOAD%\.agent %WORKSPACEPATH%
