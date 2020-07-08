@@ -30,7 +30,6 @@ if exist "%candidateworkspacepath%" goto :while
 set WORKSPACEPATH=%candidateworkspacepath%
 
 :CREATE_WORKSPACE
-rd /s /q %EMPTYDIR%
 mkdir %WORKSPACEPATH%
 xcopy /Y /S /I %HELIX_CORRELATION_PAYLOAD%\* %WORKSPACEPATH%
 copy /Y %HELIX_WORKITEM_PAYLOAD%\.agent %WORKSPACEPATH%
@@ -44,6 +43,11 @@ IF EXIST "%WORKSPACEPATH%\_diag" (xcopy /s /y "%WORKSPACEPATH%\_diag\*" "%HELIX_
 
 echo Requesting reboot to kill all processes (including possible leaked AzDO agents)
 %HELIX_PYTHONPATH% -c "from helix.workitemutil import request_reboot; request_reboot('Reboot to kill all processes')"
+
+REM Repeat the deletion of the workspace directory because for very large builds this can take minutes to complete,
+REM which counts towards the queue time of the build it picks up.
+robocopy /mir %EMPTYDIR% %WORKSPACEPATH%
+rmdir /S /Q %WORKSPACEPATH%
 
 if not "%LASTEXITCODE%" == "0" (
     echo Unexpected error returned from agent: %LASTEXITCODE%
