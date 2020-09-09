@@ -351,14 +351,14 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
             WorkItemDetails workItemDetails;
             try
             {
-                _logger.LogTrace($"Looking up work item details for agent {workItemId} in Helix Job {correlationId}");
+                _logger.LogTrace($"Looking up work item details for work item {workItemId} in Helix Job {correlationId}");
 
                 IHelixApi api = GetHelixApi(agentRequestStatusItem.agentData.isPublicQueue);
                 workItemDetails = await api.WorkItem.DetailsAsync(correlationId, workItemId);
             }
             catch (Exception e)
             {
-                _logger.LogError($"Failed to find work item {workItemId} in Helix Job {correlationId}:{Environment.NewLine}{e.ToString()}");
+                _logger.LogError($"Failed to find work item {workItemId} in Helix Job {correlationId}:{Environment.NewLine}{e}");
                 return BadRequest();
             }
 
@@ -371,26 +371,29 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 case "passed":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work is in progress or complete. (Helix work item in job {correlationId} for agent {workItemId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State})"
+                        statusMessage = $"Work is in progress or complete. (Helix work item in job {correlationId}, work item {workItemId} queued in " +
+                                        $"{agentRequestStatusItem.agentData.queueId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State})"
                     });
                 case "unscheduled":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work has been submitted to the Helix API, but has not started yet (Helix work item in job {correlationId} for agent {workItemId} is currently in state '{workItemDetails.State}')"
+                        statusMessage = $"Work has been submitted to the Helix API ({agentRequestStatusItem.agentData.queueId}), but has not started yet " +
+                                        $"(Helix work item in job {correlationId}, work item {workItemId} is currently {workItemDetails.State}, all machines seem to be busy)"
                     });
                 case "waiting":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work has been submitted to the Helix API, and is waiting for a machine (Helix work item in job {correlationId} for agent {workItemId} is currently waiting for a machine.)"
+                        statusMessage = $"Work has been submitted to the Helix API ({agentRequestStatusItem.agentData.queueId}), and is waiting for a machine " +
+                                        $"(Helix work item in job {correlationId}, work item {workItemId} is currently waiting for a machine.)"
                     });
                 case "failed":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Error state: Please contact dnceng with Job Id (Helix work item in job {correlationId} for agent {workItemId} failed. Please check the logs.)"
+                        statusMessage = $"Error state: Please contact dnceng with Job Id (Helix work item {workItemId} in job {correlationId} failed. Please check the logs.)"
                     });
                 default:
                     throw new NotImplementedException(
-                        $"Got unexpected state '{workItemDetails.State}' for agent {workItemId} in job {correlationId}");
+                        $"Got unexpected state '{workItemDetails.State}' for work item {workItemId} in job {correlationId}");
             }
         }
 
