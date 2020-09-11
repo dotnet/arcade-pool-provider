@@ -378,7 +378,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     return Json(new AgentStatusItem()
                     {
                         statusMessage = $"Work has been submitted to the Helix API ({agentRequestStatusItem.agentData.queueId}), but has not started yet " +
-                                        $"(Helix work item in job {correlationId} for agent {workItemId} is currently {workItemDetails.State}, machines are either busy or provisionining)"
+                                        $"(Helix work item in job {correlationId} for agent {workItemId} is currently {workItemDetails.State}, machines are either busy or provisioning)"
                     });
                 case "waiting":
                     return Json(new AgentStatusItem()
