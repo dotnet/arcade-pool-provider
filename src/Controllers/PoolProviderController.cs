@@ -371,17 +371,20 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 case "passed":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work is in progress or complete. (Helix work item in job {correlationId} for agent {workItemId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State})"
+                        statusMessage = $"Work is in progress or complete. (Helix work item in job {correlationId} for agent {workItemId} queued in " +
+                                        $"{agentRequestStatusItem.agentData.queueId} was picked up by machine {workItemDetails.MachineName} and is {workItemDetails.State})"
                     });
                 case "unscheduled":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work has been submitted to the Helix API, but has not started yet (Helix work item in job {correlationId} for agent {workItemId} is currently in state '{workItemDetails.State}')"
+                        statusMessage = $"Work has been submitted to the Helix API ({agentRequestStatusItem.agentData.queueId}), but has not started yet " +
+                                        $"(Helix work item in job {correlationId} for agent {workItemId} is currently {workItemDetails.State}, machines are either busy or provisioning)"
                     });
                 case "waiting":
                     return Json(new AgentStatusItem()
                     {
-                        statusMessage = $"Work has been submitted to the Helix API, and is waiting for a machine (Helix work item in job {correlationId} for agent {workItemId} is currently waiting for a machine.)"
+                        statusMessage = $"Work has been submitted to the Helix API ({agentRequestStatusItem.agentData.queueId}), and is waiting for a machine " +
+                                        $"(Helix work item in job {correlationId} for agent {workItemId} is currently waiting for a machine.)"
                     });
                 case "failed":
                     return Json(new AgentStatusItem()
