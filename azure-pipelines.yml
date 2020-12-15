@@ -24,7 +24,8 @@ variables:
     value: .NETCore
   - name: skipComponentGovernanceDetection
     value: true
-  - group: SDL_Settings
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: SDL_Settings
 
 stages:
   - stage: Build
@@ -115,24 +116,25 @@ stages:
               # that we are interested in will be found by the tool
               # when scanning .csproj and package.json files.
               ignoreDirectories: '.packages'
-  - stage: Validate
-    dependsOn: Build
-    jobs:
-    - template: /eng/common/templates/post-build/setup-maestro-vars.yml
-    - template: /eng/common/templates/job/execute-sdl.yml
-      parameters:
-        dependsOn: setupMaestroVars
-        enable: true
-        additionalParameters: '-SourceToolsList @("policheck","credscan")
-          -TsaInstanceURL $(_TsaInstanceURL)
-          -TsaProjectName $(_TsaProjectName)
-          -TsaNotificationEmail $(_TsaNotificationEmail)
-          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-          -TsaBugAreaPath $(_TsaBugAreaPath)
-          -TsaIterationPath $(_TsaIterationPath)
-          -TsaRepositoryName "Arcade-Services"
-          -TsaCodebaseName "Arcade-Services"
-          -TsaPublish $True'
-        continueOnError: false
-        artifactNames: ''
-        downloadArtifacts: true
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - stage: Validate
+      dependsOn: Build
+      jobs:
+      - template: /eng/common/templates/post-build/setup-maestro-vars.yml
+      - template: /eng/common/templates/job/execute-sdl.yml
+        parameters:
+          dependsOn: setupMaestroVars
+          enable: true
+          additionalParameters: '-SourceToolsList @("policheck","credscan")
+            -TsaInstanceURL $(_TsaInstanceURL)
+            -TsaProjectName $(_TsaProjectName)
+            -TsaNotificationEmail $(_TsaNotificationEmail)
+            -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+            -TsaBugAreaPath $(_TsaBugAreaPath)
+            -TsaIterationPath $(_TsaIterationPath)
+            -TsaRepositoryName "Arcade-Services"
+            -TsaCodebaseName "Arcade-Services"
+            -TsaPublish $True'
+          continueOnError: false
+          artifactNames: ''
+          downloadArtifacts: true
