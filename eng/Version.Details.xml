@@ -3,13 +3,13 @@
   <ProductDependencies>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="6.0.0-beta.20525.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="6.0.0-beta.20614.8">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>a77062f9cdaf07cbaf8d19941d079837844f69ca</Sha>
+      <Sha>b2d5bf0342fa65d70ed2c3ddbdb3841d7ca0b382</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.JobSender" Version="6.0.0-beta.20525.1">
+    <Dependency Name="Microsoft.DotNet.Helix.JobSender" Version="6.0.0-beta.20614.8">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>a77062f9cdaf07cbaf8d19941d079837844f69ca</Sha>
+      <Sha>b2d5bf0342fa65d70ed2c3ddbdb3841d7ca0b382</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

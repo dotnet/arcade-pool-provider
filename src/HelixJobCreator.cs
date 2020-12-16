@@ -159,7 +159,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
                 _logger.LogError($"Unable to complete request to create Helix job in specified timeout, attempting to cancel it.");
                 if (sentJob != null && !string.IsNullOrEmpty(sentJob.CorrelationId))
                 {
-                    await _api.Job.CancelAsync(sentJob.CorrelationId, CancellationToken.None);
+                    await _api.Job.CancelAsync(sentJob.CorrelationId);
                     _logger.LogError($"Possible race condition: cancelled Helix Job '{sentJob.CorrelationId}' may still run.");
                 }
                 return new AgentInfoItem() { accepted = false };
