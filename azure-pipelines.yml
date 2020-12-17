@@ -43,7 +43,7 @@ stages:
         helixRepo: dotnet/arcade-pool-provider
         jobs:
         - job: Windows_NT
-          timeoutInMinutes: 90
+          timeoutInMinutes: 30
           pool:
             ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
               name: NetCorePublic-Pool
