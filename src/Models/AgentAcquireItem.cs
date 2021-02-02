@@ -20,8 +20,5 @@ namespace Microsoft.DotNet.HelixPoolProvider.Models
         public AgentConfigurationItem agentConfiguration { get; set; }
         [Required]
         public object agentSpecification { get; set; }
-
-        public string getAssociatedJobUrl { get; set; }
-        public string authenticationToken { get; set; }
     }
 }
