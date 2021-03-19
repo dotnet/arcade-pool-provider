@@ -2,13 +2,13 @@ trigger:
   batch: true
   branches:
     include:
-    - master
+    - main
     - production
 
 pr:
   branches:
     include:
-    - master
+    - main
     - production
   paths:
     exclude:
