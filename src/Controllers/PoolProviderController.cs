@@ -16,6 +16,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,6 +61,66 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 }
             }
         }
+
+        private async Task LogJobInformation(AgentAcquireItem agentAcquireItem)
+        {
+            await TryToGetJobInfoAsync(
+                agentAcquireItem.getAssociatedJobUrl,
+                agentAcquireItem.authenticationToken);
+
+            await TryToGetAgentInfoAsync(
+                agentAcquireItem.agentId,
+                agentAcquireItem.agentPool,
+                agentAcquireItem.authenticationToken);
+        }
+
+        private async Task TryToGetJobInfoAsync(string getAssociatedJobUrl, string authenticationToken)
+        {
+            if (!string.IsNullOrEmpty(getAssociatedJobUrl))
+            {
+                _logger.LogInformation("Getting associated job from {AssociatedJobUrl}", getAssociatedJobUrl);
+
+                var httpClient = new HttpClient();
+                var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
+                var response = await httpClient.SendAsync(message);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("GetAssociatedJob responded with StatusCode={StatusCode}, Content={Content}", response.StatusCode, responseData);
+                }
+                else
+                {
+                    _logger.LogInformation("GetAssociatedJob responded with error code {StatusCode}", response.StatusCode);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("getAssociatedJobUrl is not set");
+            }
+        }
+
+        private async Task TryToGetAgentInfoAsync(string agentId, string poolId, string authenticationToken)
+        {
+            var getAgentUrl = $"https://dev.azure.com/dnceng/_apis/distributedtask/pools/{poolId}/agents/{agentId}?api-version=6.0&includeAssignedRequest=true";
+
+            _logger.LogInformation("Getting agent info from {GetAgentUrl}, AgentId={AgentId},PoolId={PoolId}", getAgentUrl, agentId, poolId);
+
+            var httpClient = new HttpClient();
+            var message = new HttpRequestMessage(HttpMethod.Get, getAgentUrl);
+            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
+            var response = await httpClient.SendAsync(message);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("GetAgent responded with StatusCode={StatusCode}, Content={Content}", response.StatusCode, responseData);
+            }
+            else
+            {
+                _logger.LogInformation("GetAgent responded with error code {StatusCode}", response.StatusCode);
+            }
+        }
+
         #endregion
 
         private (string orchestrationId, string jobName) ExtractRequestSourceInfo()
@@ -110,6 +172,10 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 string queueId;
                 try
                 {
+                    LogHeaders();
+                    LogRequestBody();
+                    await LogJobInformation(agentRequestItem);
+
                     queueId = ExtractQueueId(agentRequestItem.agentSpecification);
 
                     if (queueId == null)
