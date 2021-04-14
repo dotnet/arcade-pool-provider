@@ -2,13 +2,13 @@ trigger:
   batch: true
   branches:
     include:
-    - master
+    - main
     - production
 
 pr:
   branches:
     include:
-    - master
+    - main
     - production
   paths:
     exclude:
@@ -24,91 +24,117 @@ variables:
     value: .NETCore
   - name: skipComponentGovernanceDetection
     value: true
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: SDL_Settings
 
-jobs:
-- template: /eng/common/templates/jobs/jobs.yml
-  parameters:
-    enableMicrobuild: false
-    enablePublishBuildArtifacts: true
-    enablePublishBuildAssets: true
-    enablePublishUsingPipelines: $(_PublishUsingPipelines)
-    enableTelemetry: true
-    graphFileGeneration:
-      enabled: true
-      includeToolset: true
-    helixRepo: dotnet/arcade-pool-provider
+stages:
+  - stage: Build
     jobs:
-    - job: Windows_NT
-      timeoutInMinutes: 90
-      pool:
-        ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          name: NetCorePublic-Pool
-          queue: BuildPool.Windows.10.Amd64.VS2017.Open
-        ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          name: NetCoreInternal-Pool
-          queue: BuildPool.Windows.10.Amd64.VS2017
-      variables:
-      - _Script: eng\common\cibuild.cmd
-      - _InternalBuildArgs: ''
-
-      # Only enable publishing in non-public, non PR scenarios.
-      - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-        # DotNet-Blob-Feed provides: dotnetfeed-storage-access-key-1
-        # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
-        - group: DotNet-Blob-Feed
-        - group: Publish-Build-Assets
-        - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
-        - _InternalBuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
-            /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-            /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
-            /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
-            /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
-            /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-            /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
-
-      strategy:
-        matrix:
-          Build_Release:
-            _BuildConfig: Release
-            # PRs or external builds are not signed.
+    - template: /eng/common/templates/jobs/jobs.yml
+      parameters:
+        enableMicrobuild: false
+        enablePublishBuildArtifacts: true
+        enablePublishBuildAssets: true
+        enablePublishUsingPipelines: $(_PublishUsingPipelines)
+        enableTelemetry: true
+        graphFileGeneration:
+          enabled: true
+          includeToolset: true
+        helixRepo: dotnet/arcade-pool-provider
+        jobs:
+        - job: Windows_NT
+          timeoutInMinutes: 30
+          pool:
             ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-              _SignType: test
-              _DotNetPublishToBlobFeed : false
+              name: NetCorePublic-Pool
+              queue: BuildPool.Windows.10.Amd64.VS2017.Open
             ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-              _SignType: test
-              _DotNetPublishToBlobFeed : true
-          ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-            Build_Debug:
-              _BuildConfig: Debug
-              _SignType: test
-              _DotNetPublishToBlobFeed : false
-      steps:
-      - checkout: self
-        clean: true
-      # Use utility script to run script command dependent on agent OS.
-      - script: $(_Script)
-          -configuration $(_BuildConfig)
-          -prepareMachine
-          $(_InternalBuildArgs)
-          /p:Test=false
-        displayName: Windows Build / Publish
-      - task: DotNetCoreCLI@2
-        displayName: Publish
-        inputs:
-          command: publish
-          publishWebProjects: True
-          arguments: '--configuration $(_BuildConfig) --output $(build.artifactstagingdirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact'
-        inputs:
-          pathtoPublish: '$(build.artifactstagingdirectory)'
-          artifactName: 'drop'
-      - task: ComponentGovernanceComponentDetection@0
-        inputs:
-          # `.packages` directory is used by some tools running during build.
-          # By default ComponentDetection scans this directory and sometimes reports
-          # vulnerabilities for packages that are not part of the published product.
-          # We can ignore this directory because actual vulnerabilities
-          # that we are interested in will be found by the tool
-          # when scanning .csproj and package.json files.
-          ignoreDirectories: '.packages'
+              name: NetCoreInternal-Pool
+              queue: BuildPool.Windows.10.Amd64.VS2017
+          variables:
+          - _Script: eng\common\cibuild.cmd
+          - _InternalBuildArgs: ''
+
+          # Only enable publishing in non-public, non PR scenarios.
+          - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            # DotNet-Blob-Feed provides: dotnetfeed-storage-access-key-1
+            # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
+            - group: DotNet-Blob-Feed
+            - group: Publish-Build-Assets
+            - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+            - _InternalBuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
+                /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+                /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
+                /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
+                /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
+                /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+
+          strategy:
+            matrix:
+              Build_Release:
+                _BuildConfig: Release
+                # PRs or external builds are not signed.
+                ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+                  _SignType: test
+                  _DotNetPublishToBlobFeed : false
+                ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+                  _SignType: test
+                  _DotNetPublishToBlobFeed : true
+              ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+                Build_Debug:
+                  _BuildConfig: Debug
+                  _SignType: test
+                  _DotNetPublishToBlobFeed : false
+          steps:
+          - checkout: self
+            clean: true
+          # Use utility script to run script command dependent on agent OS.
+          - script: $(_Script)
+              -configuration $(_BuildConfig)
+              -prepareMachine
+              $(_InternalBuildArgs)
+              /p:Test=false
+            displayName: Windows Build / Publish
+          - task: DotNetCoreCLI@2
+            displayName: Publish
+            inputs:
+              command: publish
+              publishWebProjects: True
+              arguments: '--configuration $(_BuildConfig) --output $(build.artifactstagingdirectory)'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Artifact'
+            inputs:
+              pathtoPublish: '$(build.artifactstagingdirectory)'
+              artifactName: 'drop'
+          - task: ComponentGovernanceComponentDetection@0
+            inputs:
+              # `.packages` directory is used by some tools running during build.
+              # By default ComponentDetection scans this directory and sometimes reports
+              # vulnerabilities for packages that are not part of the published product.
+              # We can ignore this directory because actual vulnerabilities
+              # that we are interested in will be found by the tool
+              # when scanning .csproj and package.json files.
+              ignoreDirectories: '.packages'
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - stage: Validate
+      dependsOn: Build
+      jobs:
+      - template: /eng/common/templates/post-build/setup-maestro-vars.yml
+      - template: /eng/common/templates/job/execute-sdl.yml
+        parameters:
+          dependsOn: setupMaestroVars
+          enable: true
+          additionalParameters: '-SourceToolsList @("policheck","credscan")
+            -TsaInstanceURL $(_TsaInstanceURL)
+            -TsaProjectName $(_TsaProjectName)
+            -TsaNotificationEmail $(_TsaNotificationEmail)
+            -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+            -TsaBugAreaPath $(_TsaBugAreaPath)
+            -TsaIterationPath $(_TsaIterationPath)
+            -TsaRepositoryName "Arcade-Services"
+            -TsaCodebaseName "Arcade-Services"
+            -TsaPublish $True'
+          continueOnError: false
+          artifactNames: ''
+          downloadArtifacts: true
