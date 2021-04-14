@@ -12,6 +12,7 @@ using Microsoft.DotNet.HelixPoolProvider.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -25,13 +26,19 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
 {
     public class PoolProviderController : Controller
     {
+        private readonly AssociatedJobInfoClient _associatedJobInfoClient;
         private ILogger _logger;
         private ILoggerFactory _loggerFactory;
         private Config _configuration;
         private IHostingEnvironment _hostingEnvironment;
 
-        public PoolProviderController(ILoggerFactory loggerFactory, IConfiguration config, IHostingEnvironment hostingEnvironment)
+        public PoolProviderController(
+            AssociatedJobInfoClient associatedJobInfoClient,
+            ILoggerFactory loggerFactory,
+            IConfiguration config,
+            IHostingEnvironment hostingEnvironment)
         {
+            _associatedJobInfoClient = associatedJobInfoClient;
             _logger = loggerFactory.CreateLogger<PoolProviderController>();
             _loggerFactory = loggerFactory;
             _configuration = new Config(config, loggerFactory);
@@ -39,87 +46,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         }
 
         #region Debugging
-        private void LogHeaders()
-        {
-            _logger.LogInformation($"Headers:");
-            _logger.LogInformation($"Response has {Request.Headers.Count} headers");
-            foreach (var header in Request.Headers)
-            {
-                _logger.LogInformation($"{header.Key}={header.Value}");
-            }
-        }
-
-        private void LogRequestBody()
-        {
-            _logger.LogInformation($"Body:");
-            if (Request != null && Request.Body != null)
-            {
-                Request.Body.Seek(0, System.IO.SeekOrigin.Begin);
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
-                {
-                    _logger.LogInformation(reader.ReadToEnd());
-                }
-            }
-        }
-
-        private async Task LogJobInformation(AgentAcquireItem agentAcquireItem)
-        {
-            await TryToGetJobInfoAsync(
-                agentAcquireItem.getAssociatedJobUrl,
-                agentAcquireItem.authenticationToken);
-
-            await TryToGetAgentInfoAsync(
-                agentAcquireItem.agentId,
-                agentAcquireItem.agentPool,
-                agentAcquireItem.authenticationToken);
-        }
-
-        private async Task TryToGetJobInfoAsync(string getAssociatedJobUrl, string authenticationToken)
-        {
-            if (!string.IsNullOrEmpty(getAssociatedJobUrl))
-            {
-                _logger.LogInformation("Getting associated job from {AssociatedJobUrl}", getAssociatedJobUrl);
-
-                var httpClient = new HttpClient();
-                var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
-                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
-                var response = await httpClient.SendAsync(message);
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseData = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation("GetAssociatedJob responded with StatusCode={StatusCode}, Content={Content}", response.StatusCode, responseData);
-                }
-                else
-                {
-                    _logger.LogInformation("GetAssociatedJob responded with error code {StatusCode}", response.StatusCode);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("getAssociatedJobUrl is not set");
-            }
-        }
-
-        private async Task TryToGetAgentInfoAsync(string agentId, string poolId, string authenticationToken)
-        {
-            var getAgentUrl = $"https://dev.azure.com/dnceng/_apis/distributedtask/pools/{poolId}/agents/{agentId}?api-version=6.0&includeAssignedRequest=true";
-
-            _logger.LogInformation("Getting agent info from {GetAgentUrl}, AgentId={AgentId},PoolId={PoolId}", getAgentUrl, agentId, poolId);
-
-            var httpClient = new HttpClient();
-            var message = new HttpRequestMessage(HttpMethod.Get, getAgentUrl);
-            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
-            var response = await httpClient.SendAsync(message);
-            if (response.IsSuccessStatusCode)
-            {
-                var responseData = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("GetAgent responded with StatusCode={StatusCode}, Content={Content}", response.StatusCode, responseData);
-            }
-            else
-            {
-                _logger.LogInformation("GetAgent responded with error code {StatusCode}", response.StatusCode);
-            }
-        }
 
         #endregion
 
@@ -172,10 +98,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 string queueId;
                 try
                 {
-                    LogHeaders();
-                    LogRequestBody();
-                    await LogJobInformation(agentRequestItem);
-
                     queueId = ExtractQueueId(agentRequestItem.agentSpecification);
 
                     if (queueId == null)
@@ -189,7 +111,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     return BadRequest();
                 }
 
-                var agentSettings = agentRequestItem.agentConfiguration.agentSettings;
+                var associatedJobInfo = await TryGetAssociatedJobInfo(agentRequestItem);
 
                 _logger.LogInformation("Acquiring agent for queue {queueId}", queueId);
 
@@ -206,8 +128,39 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     {"OrchestrationId", orchestrationId},
                     {"JobName", jobName},
                 };
-                var agentInfoItem = await jobCreator.CreateJob(cancellationToken, properties);
+
+                if (!string.IsNullOrEmpty(associatedJobInfo.SystemPullRequestTargetBranch))
+                {
+                    properties.Add("System.PullRequest.TargetBranch", associatedJobInfo.SystemPullRequestTargetBranch);
+                }
+
+                var agentInfoItem = await jobCreator.CreateJob(
+                    cancellationToken,
+                    associatedJobInfo.BuildSourceBranch,
+                    properties);
+
                 return Json(agentInfoItem);
+            }
+        }
+
+        private async Task<AssociatedJobInfo> TryGetAssociatedJobInfo(
+            AgentAcquireItem agentAcquireItem)
+        {
+            try
+            {
+                return await _associatedJobInfoClient.TryGetAssociatedJobInfo(
+                    agentAcquireItem.getAssociatedJobUrl,
+                    agentAcquireItem.authenticationToken);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    "Unable to get associated job information from {getAssociatedJobUrl}"
+                    + " because of exception: {exception}",
+                    agentAcquireItem.getAssociatedJobUrl,
+                    exception);
+
+                return AssociatedJobInfo.Empty;
             }
         }
 

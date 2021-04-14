@@ -26,6 +26,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpClient();
             services.AddMvc();
             services.AddAuthorization(config =>
             {
@@ -35,6 +36,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
             services.AddSingleton<IAuthorizationHandler, ValidRequestHandler>();
             // Wire up the http context accessor (no longer done by default, required by ValidRequestHandler)
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<AssociatedJobInfoClient, AssociatedJobInfoClient>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

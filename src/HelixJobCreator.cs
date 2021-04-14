@@ -84,6 +84,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         public async Task<AgentInfoItem> CreateJob(
             CancellationToken cancellationToken,
+            string buildBranchName,
             Dictionary<string, string> properties)
         {
             string credentialsPath = null;
@@ -119,9 +120,13 @@ namespace Microsoft.DotNet.HelixPoolProvider
                     }
                 }
 
+                var source = $"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/";
+                if (!string.IsNullOrEmpty(buildBranchName))
+                    source += $"/{buildBranchName}";
+
                 preparedJob = preparedJob.WithContainerName(_configuration.ContainerName)
                     .WithCorrelationPayloadUris(AgentPayloadUri)
-                    .WithSource($"agent/{_agentRequestItem.accountId}/{_orchestrationId}/{_jobName}/");
+                    .WithSource(source);
 
                 IWorkItemDefinition workitem = preparedJob.DefineWorkItem(_agentRequestItem.agentId)
                     .WithCommand(ConstructCommand())
