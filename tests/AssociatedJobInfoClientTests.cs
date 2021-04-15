@@ -5,10 +5,10 @@ using Xunit;
 
 namespace Microsoft.DotNet.HelixPoolProvider.Tests
 {
-    public class TestTest
+    public class AssociatedJobInfoClientTests
     {
         [Fact]
-        public void RunTest()
+        public void Test()
         {
             Assert.True(true);
         }
