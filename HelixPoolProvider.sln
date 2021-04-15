@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27823.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.303
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.HelixPoolProvider", "src\Microsoft.DotNet.HelixPoolProvider.csproj", "{5ED29E38-A65D-4123-BFED-799ADA885F08}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.HelixPoolProvider.Tests", "tests\Microsoft.DotNet.HelixPoolProvider.Tests.csproj", "{BA2D6859-6AB6-4EA0-AB1E-B2587E9B6885}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5ED29E38-A65D-4123-BFED-799ADA885F08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5ED29E38-A65D-4123-BFED-799ADA885F08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5ED29E38-A65D-4123-BFED-799ADA885F08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA2D6859-6AB6-4EA0-AB1E-B2587E9B6885}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA2D6859-6AB6-4EA0-AB1E-B2587E9B6885}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA2D6859-6AB6-4EA0-AB1E-B2587E9B6885}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA2D6859-6AB6-4EA0-AB1E-B2587E9B6885}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
