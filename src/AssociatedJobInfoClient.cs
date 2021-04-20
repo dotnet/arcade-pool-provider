@@ -44,13 +44,23 @@ namespace Microsoft.DotNet.HelixPoolProvider
             string getAssociatedJobUrl,
             string authenticationToken)
         {
-            var agentRequestJob = await TryGetAssociatedAgentRequestJob(
-                getAssociatedJobUrl,
-                authenticationToken);
-
-            if (agentRequestJob != null)
+            try
             {
-                return ParseAssociatedJobInfo(agentRequestJob);
+                var agentRequestJob = await TryGetAssociatedAgentRequestJob(
+                    getAssociatedJobUrl,
+                    authenticationToken);
+
+                if (agentRequestJob != null)
+                {
+                    return ParseAssociatedJobInfo(agentRequestJob);
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Unable to get associated job info from {getAssociatedJobUrl} because of an exception",
+                    getAssociatedJobUrl);
             }
 
             return AssociatedJobInfo.Empty;
