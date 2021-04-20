@@ -1,0 +1,443 @@
+{
+    "poolId": 50,
+    "projectId": "9ee6d478-d288-47f7-aacc-f6e6d082ae6d",
+    "planId": "11a77df3-03f5-4e26-82a3-ffd84b28fcef",
+    "planType": "Build",
+    "run": {
+        "id": 975215,
+        "name": "20210202.1",
+        "ref": "https://dev.azure.com/dnceng/9ee6d478-d288-47f7-aacc-f6e6d082ae6d/_apis/build/Builds/975215"
+    },
+    "definition": {
+        "id": 208,
+        "name": "arcade-ci",
+        "ref": "https://dev.azure.com/dnceng/9ee6d478-d288-47f7-aacc-f6e6d082ae6d/_apis/build/Definitions/208"
+    },
+    "job": {
+        "steps": [
+            {
+                "type": "task",
+                "id": "3038d822-7d13-58cd-b23c-f9e28508c927",
+                "name": "Checkout",
+                "enabled": true,
+                "condition": null,
+                "continueOnError": false,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "6d15af64-176c-496d-b583-fd2ae21d4df4",
+                    "name": "Checkout",
+                    "version": "1.0.0"
+                },
+                "env": {},
+                "inputs": {
+                    "repository": "self",
+                    "clean": "true",
+                    "fetchDepth": "0",
+                    "lfs": "false"
+                }
+            },
+            {
+                "type": "task",
+                "id": "afa1ce5e-d2bc-56f3-ad78-7883f25a3e3a",
+                "name": "CmdLine",
+                "enabled": true,
+                "condition": null,
+                "continueOnError": false,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+                    "name": "CmdLine",
+                    "version": "2.178.0"
+                },
+                "env": {},
+                "inputs": {
+                    "script": "eng\\common\\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_InternalBuildArgs) /p:Test=false"
+                }
+            },
+            {
+                "type": "task",
+                "id": "a6830fe6-683e-54ac-85a6-c71e9996181a",
+                "name": "ComponentGovernanceComponentDetection",
+                "enabled": true,
+                "condition": null,
+                "continueOnError": false,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "f2f0881f-4b99-4a1c-80ea-f5b13fd6cec4",
+                    "name": "ComponentGovernanceComponentDetection",
+                    "version": "0.2021201.2"
+                },
+                "env": {},
+                "inputs": {}
+            },
+            {
+                "type": "task",
+                "id": "b62c23f5-35ba-5408-8396-700f0899565b",
+                "name": "CopyFiles1",
+                "enabled": true,
+                "condition": null,
+                "continueOnError": false,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c",
+                    "name": "CopyFiles",
+                    "version": "2.180.1"
+                },
+                "env": {},
+                "inputs": {
+                    "SourceFolder": "artifacts/bin",
+                    "Contents": "**",
+                    "TargetFolder": "$(Build.ArtifactStagingDirectory)/artifacts/bin"
+                }
+            },
+            {
+                "type": "task",
+                "id": "bfe4f503-0354-5642-f749-11e6648128fc",
+                "name": "CopyFiles2",
+                "enabled": true,
+                "condition": null,
+                "continueOnError": false,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c",
+                    "name": "CopyFiles",
+                    "version": "2.180.1"
+                },
+                "env": {},
+                "inputs": {
+                    "SourceFolder": "artifacts/packages",
+                    "Contents": "**",
+                    "TargetFolder": "$(Build.ArtifactStagingDirectory)/artifacts/packages"
+                }
+            },
+            {
+                "type": "task",
+                "id": "4e2f1639-73c7-519d-6f72-683b31de27fa",
+                "name": "PublishBuildArtifacts",
+                "enabled": true,
+                "condition": "always()",
+                "continueOnError": true,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "2ff763a7-ce83-4e1f-bc89-0ae63477cebe",
+                    "name": "PublishBuildArtifacts",
+                    "version": "1.158.3"
+                },
+                "env": {},
+                "inputs": {
+                    "PathtoPublish": "$(Build.ArtifactStagingDirectory)/artifacts",
+                    "ArtifactType": "Container",
+                    "ArtifactName": "Artifacts_$(Agent.Os)_$(_BuildConfig)"
+                }
+            },
+            {
+                "type": "task",
+                "id": "de35fe34-6635-55da-2ba8-f6179a96938a",
+                "name": "PublishPipelineArtifact",
+                "enabled": true,
+                "condition": "always()",
+                "continueOnError": true,
+                "timeoutInMinutes": 0,
+                "task": {
+                    "id": "ecdc45f6-832d-4ad9-b52b-ee49e94659be",
+                    "name": "PublishPipelineArtifact",
+                    "version": "1.2.3"
+                },
+                "env": {},
+                "inputs": {
+                    "path": "artifacts/log",
+                    "artifactName": "Logs_Build_$(Agent.Os)_$(_BuildConfig)"
+                }
+            }
+        ],
+        "variables": [
+            {
+                "name": "system.debug",
+                "value": "false",
+                "secret": false
+            },
+            {
+                "name": "_TeamName",
+                "value": "DotNetCore",
+                "secret": false
+            },
+            {
+                "name": "HelixApiAccessToken",
+                "value": "",
+                "secret": false
+            },
+            {
+                "name": "_RunAsPublic",
+                "value": "True",
+                "secret": false
+            },
+            {
+                "name": "_RunAsInternal",
+                "value": "False",
+                "secret": false
+            },
+            {
+                "name": "_InternalBuildArgs",
+                "value": "",
+                "secret": false
+            },
+            {
+                "name": "skipComponentGovernanceDetection",
+                "value": "true",
+                "secret": false
+            },
+            {
+                "name": "resources.triggeringCategory",
+                "value": "",
+                "secret": false
+            },
+            {
+                "name": "resources.triggeringAlias",
+                "value": "",
+                "secret": false
+            },
+            {
+                "name": "DOTNET_CLI_TELEMETRY_PROFILE",
+                "value": "$(Build.Repository.Uri)",
+                "secret": false
+            },
+            {
+                "name": "system",
+                "value": "build",
+                "secret": false
+            },
+            {
+                "name": "system.hosttype",
+                "value": "build",
+                "secret": false
+            },
+            {
+                "name": "system.servertype",
+                "value": "Hosted",
+                "secret": false
+            },
+            {
+                "name": "system.culture",
+                "value": "en-US",
+                "secret": false
+            },
+            {
+                "name": "system.collectionId",
+                "value": "b55de4ed-4b5a-4215-a8e4-0a0a5f71e7d8",
+                "secret": false
+            },
+            {
+                "name": "system.collectionUri",
+                "value": "https://dev.azure.com/dnceng/",
+                "secret": false
+            },
+            {
+                "name": "system.teamFoundationCollectionUri",
+                "value": "https://dev.azure.com/dnceng/",
+                "secret": false
+            },
+            {
+                "name": "system.taskDefinitionsUri",
+                "value": "https://dev.azure.com/dnceng/",
+                "secret": false
+            },
+            {
+                "name": "system.pipelineStartTime",
+                "value": "2021-02-02 00:21:42-08:00",
+                "secret": false
+            },
+            {
+                "name": "system.teamProject",
+                "value": "public",
+                "secret": false
+            },
+            {
+                "name": "system.teamProjectId",
+                "value": "9ee6d478-d288-47f7-aacc-f6e6d082ae6d",
+                "secret": false
+            },
+            {
+                "name": "system.definitionId",
+                "value": "208",
+                "secret": false
+            },
+            {
+                "name": "build.definitionName",
+                "value": "arcade-ci",
+                "secret": false
+            },
+            {
+                "name": "build.definitionVersion",
+                "value": "13",
+                "secret": false
+            },
+            {
+                "name": "build.sourceVersion",
+                "value": "c56c170b7fcbd5dd47d1b8a7ca61c9cb2f8d6381",
+                "secret": false
+            },
+            {
+                "name": "build.sourceBranch",
+                "value": "refs/heads/pool-provider-test",
+                "secret": false
+            },
+            {
+                "name": "build.sourceBranchName",
+                "value": "pool-provider-test",
+                "secret": false
+            },
+            {
+                "name": "build.reason",
+                "value": "Manual",
+                "secret": false
+            },
+            {
+                "name": "system.pullRequest.isFork",
+                "value": "False",
+                "secret": false
+            },
+            {
+                "name": "system.jobParallelismTag",
+                "value": "Public",
+                "secret": false
+            },
+            {
+                "name": "system.enableAccessToken",
+                "value": "SecretVariable",
+                "secret": false
+            },
+            {
+                "name": "build.buildId",
+                "value": "975215",
+                "secret": false
+            },
+            {
+                "name": "build.buildUri",
+                "value": "vstfs:///Build/Build/975215",
+                "secret": false
+            },
+            {
+                "name": "build.buildNumber",
+                "value": "20210202.1",
+                "secret": false
+            },
+            {
+                "name": "build.containerId",
+                "value": "6132275",
+                "secret": false
+            },
+            {
+                "name": "system.isScheduled",
+                "value": "False",
+                "secret": false
+            },
+            {
+                "name": "system.definitionName",
+                "value": "arcade-ci",
+                "secret": false
+            },
+            {
+                "name": "system.planId",
+                "value": "11a77df3-03f5-4e26-82a3-ffd84b28fcef",
+                "secret": false
+            },
+            {
+                "name": "system.timelineId",
+                "value": "11a77df3-03f5-4e26-82a3-ffd84b28fcef",
+                "secret": false
+            },
+            {
+                "name": "system.stageDisplayName",
+                "value": "Build",
+                "secret": false
+            },
+            {
+                "name": "system.stageId",
+                "value": "6884a131-87da-5381-61f3-d7acc3b91d76",
+                "secret": false
+            },
+            {
+                "name": "system.stageName",
+                "value": "build",
+                "secret": false
+            },
+            {
+                "name": "system.stageAttempt",
+                "value": "1",
+                "secret": false
+            },
+            {
+                "name": "system.phaseDisplayName",
+                "value": "Windows_NT",
+                "secret": false
+            },
+            {
+                "name": "system.phaseId",
+                "value": "743b31d6-3764-597c-f875-192a84ebffd9",
+                "secret": false
+            },
+            {
+                "name": "system.phaseName",
+                "value": "Windows_NT",
+                "secret": false
+            },
+            {
+                "name": "system.phaseAttempt",
+                "value": "1",
+                "secret": false
+            },
+            {
+                "name": "system.jobIdentifier",
+                "value": "build.Windows_NT.Build_Release",
+                "secret": false
+            },
+            {
+                "name": "system.jobAttempt",
+                "value": "1",
+                "secret": false
+            },
+            {
+                "name": "System.JobPositionInPhase",
+                "value": "1",
+                "secret": false
+            },
+            {
+                "name": "System.TotalJobsInPhase",
+                "value": "2",
+                "secret": false
+            },
+            {
+                "name": "System.ParallelExecutionType",
+                "value": "MultiConfiguration",
+                "secret": false
+            },
+            {
+                "name": "_BuildConfig",
+                "value": "Release",
+                "secret": false
+            },
+            {
+                "name": "system.jobDisplayName",
+                "value": "Windows_NT Build_Release",
+                "secret": false
+            },
+            {
+                "name": "system.jobId",
+                "value": "fa59fe4e-195c-56fa-189b-58fd241f10dd",
+                "secret": false
+            },
+            {
+                "name": "system.jobName",
+                "value": "Build_Release",
+                "secret": false
+            },
+            {
+                "name": "system.jobTimeout",
+                "value": "90",
+                "secret": false
+            }
+        ],
+        "id": "fa59fe4e-195c-56fa-189b-58fd241f10dd",
+        "name": "Build_Release"
+    }
+}
