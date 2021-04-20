@@ -81,7 +81,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
             }
             else
             {
-                _logger.LogInformation("getAssociatedJobUrl is not set");
+                _logger.LogInformation("Unable to get associated job info because getAssociatedJobUrl is not set");
             }
 
             return null;

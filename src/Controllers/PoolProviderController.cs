@@ -27,10 +27,10 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
     public class PoolProviderController : Controller
     {
         private readonly AssociatedJobInfoClient _associatedJobInfoClient;
-        private ILogger _logger;
-        private ILoggerFactory _loggerFactory;
-        private Config _configuration;
-        private IHostingEnvironment _hostingEnvironment;
+        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly Config _configuration;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         public PoolProviderController(
             AssociatedJobInfoClient associatedJobInfoClient,
