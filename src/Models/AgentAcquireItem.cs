@@ -16,13 +16,11 @@ namespace Microsoft.DotNet.HelixPoolProvider.Models
         public string accountId { get; set; }
         public string failRequestUrl { get; set; }
         public string appendRequestMessageUrl { get; set; }
+        public string getAssociatedJobUrl { get; set; }
+        public string authenticationToken { get; set; }
         [Required]
         public AgentConfigurationItem agentConfiguration { get; set; }
         [Required]
         public object agentSpecification { get; set; }
-
-        public string updateRequestUrl { get; set; }
-        public string getAssociatedJobUrl { get; set; }
-        public string authenticationToken { get; set; }
     }
 }

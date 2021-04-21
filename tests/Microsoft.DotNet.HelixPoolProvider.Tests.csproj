@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="AssociatedJobInfoClientTestsData\GetAssociatedJobResponse_ForkPR.json" />
     <None Remove="AssociatedJobInfoClientTestsData\GetAssociatedJobResponse_Manual.json" />

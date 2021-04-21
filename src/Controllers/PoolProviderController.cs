@@ -46,7 +46,28 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         }
 
         #region Debugging
+        private void LogHeaders()
+        {
+            _logger.LogInformation($"Headers:");
+            _logger.LogInformation($"Response has {Request.Headers.Count} headers");
+            foreach (var header in Request.Headers)
+            {
+                _logger.LogInformation($"{header.Key}={header.Value}");
+            }
+        }
 
+        private void LogRequestBody()
+        {
+            _logger.LogInformation($"Body:");
+            if (Request != null && Request.Body != null)
+            {
+                Request.Body.Seek(0, System.IO.SeekOrigin.Begin);
+                using (System.IO.StreamReader reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
+                {
+                    _logger.LogInformation(reader.ReadToEnd());
+                }
+            }
+        }
         #endregion
 
         private (string orchestrationId, string jobName) ExtractRequestSourceInfo()
@@ -111,7 +132,9 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     return BadRequest();
                 }
 
-                var associatedJobInfo = await TryGetAssociatedJobInfo(agentRequestItem);
+                var associatedJobInfo = await _associatedJobInfoClient.TryGetAssociatedJobInfo(
+                    agentRequestItem.getAssociatedJobUrl,
+                    agentRequestItem.authenticationToken);
 
                 _logger.LogInformation("Acquiring agent for queue {queueId}", queueId);
 
@@ -140,27 +163,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     properties);
 
                 return Json(agentInfoItem);
-            }
-        }
-
-        private async Task<AssociatedJobInfo> TryGetAssociatedJobInfo(
-            AgentAcquireItem agentAcquireItem)
-        {
-            try
-            {
-                return await _associatedJobInfoClient.TryGetAssociatedJobInfo(
-                    agentAcquireItem.getAssociatedJobUrl,
-                    agentAcquireItem.authenticationToken);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(
-                    "Unable to get associated job information from {getAssociatedJobUrl}"
-                    + " because of exception: {exception}",
-                    agentAcquireItem.getAssociatedJobUrl,
-                    exception);
-
-                return AssociatedJobInfo.Empty;
             }
         }
 
