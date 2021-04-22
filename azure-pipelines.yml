@@ -94,7 +94,6 @@ stages:
               -configuration $(_BuildConfig)
               -prepareMachine
               $(_InternalBuildArgs)
-              /p:Test=false
             displayName: Windows Build / Publish
           - task: DotNetCoreCLI@2
             displayName: Publish
