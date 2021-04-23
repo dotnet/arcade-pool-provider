@@ -74,10 +74,10 @@ namespace Microsoft.DotNet.HelixPoolProvider
             {
                 _logger.LogInformation("Getting associated job from {AssociatedJobUrl}", getAssociatedJobUrl);
 
-                var httpClient = _httpClientFactory.CreateClient();
-                var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
+                using var httpClient = _httpClientFactory.CreateClient();
+                using var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
-                var response = await httpClient.SendAsync(message);
+                using var response = await httpClient.SendAsync(message);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseJson = await response.Content.ReadAsStringAsync();
