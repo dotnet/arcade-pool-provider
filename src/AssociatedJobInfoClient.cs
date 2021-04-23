@@ -46,7 +46,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
         {
             try
             {
-                var agentRequestJob = await TryGetAssociatedAgentRequestJob(
+                AgentRequestJob agentRequestJob = await TryGetAssociatedAgentRequestJob(
                     getAssociatedJobUrl,
                     authenticationToken);
 
@@ -74,14 +74,14 @@ namespace Microsoft.DotNet.HelixPoolProvider
             {
                 _logger.LogInformation("Getting associated job from {AssociatedJobUrl}", getAssociatedJobUrl);
 
-                using var httpClient = _httpClientFactory.CreateClient();
+                using HttpClient httpClient = _httpClientFactory.CreateClient();
                 using var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
-                using var response = await httpClient.SendAsync(message);
+                using HttpResponseMessage response = await httpClient.SendAsync(message);
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseJson = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonConvert.DeserializeObject<AgentRequestJob>(responseJson);
+                    string responseJson = await response.Content.ReadAsStringAsync();
+                    AgentRequestJob responseData = JsonConvert.DeserializeObject<AgentRequestJob>(responseJson);
                     return responseData;
                 }
                 else
@@ -99,8 +99,8 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         private AssociatedJobInfo ParseAssociatedJobInfo(AgentRequestJob job)
         {
-            var buildSourceBranch = GetVarValueOrEmpty("build.sourceBranch", job.Job.Variables);
-            var pullRequestTargetBranchName = GetVarValueOrEmpty("system.pullRequest.targetBranch", job.Job.Variables);
+            string buildSourceBranch = GetVarValueOrEmpty("build.sourceBranch", job.Job.Variables);
+            string pullRequestTargetBranchName = GetVarValueOrEmpty("system.pullRequest.targetBranch", job.Job.Variables);
 
             return new AssociatedJobInfo(
                 buildSourceBranch: buildSourceBranch,
@@ -112,7 +112,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
             string name,
             IList<AgentRequestJobVariable> variables)
         {
-            var variable = variables.FirstOrDefault(v =>
+            AgentRequestJobVariable variable = variables.FirstOrDefault(v =>
                 string.Equals(v.Name, name, StringComparison.OrdinalIgnoreCase));
 
             if (variable != null)

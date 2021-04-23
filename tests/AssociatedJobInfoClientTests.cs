@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
                 new StubHttpClientFactory(() => new StubHttpClient(HttpStatusCode.OK, responseData)),
                 new NullLogger<AssociatedJobInfoClient>());
 
-            var response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
+            AssociatedJobInfo response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
                 getAssociatedJobUrl: "https://dev.azure.com/dnceng/_apis/distributedtask/agentclouds/7/requests/a7344980-1166-4beb-8ab3-70521d838010/job?api-version=5.0-preview",
                 authenticationToken: "test");
 
@@ -65,7 +66,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
                 new StubHttpClientFactory(() => new StubHttpClient(azdoResponseStatusCode)),
                 new NullLogger<AssociatedJobInfoClient>());
 
-            var response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
+            AssociatedJobInfo response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
                 getAssociatedJobUrl: "https://dev.azure.com/dnceng/_apis/distributedtask/agentclouds/7/requests/a7344980-1166-4beb-8ab3-70521d838010/job?api-version=5.0-preview",
                 authenticationToken: "test");
 
@@ -81,7 +82,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
                 new StubHttpClientFactory(() => new ThrowingHttpClient()),
                 new NullLogger<AssociatedJobInfoClient>());
 
-            var response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
+            AssociatedJobInfo response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
                 getAssociatedJobUrl: "https://dev.azure.com/dnceng/_apis/distributedtask/agentclouds/7/requests/a7344980-1166-4beb-8ab3-70521d838010/job?api-version=5.0-preview",
                 authenticationToken: "test");
 
@@ -92,10 +93,10 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
 
         private string LoadTestData(string name)
         {
-            var thisType = GetType();
-            var fullName = $"{thisType.FullName}Data.{name}";
+            Type thisType = GetType();
+            string fullName = $"{thisType.FullName}Data.{name}";
 
-            using var resourceStream = thisType.Assembly.GetManifestResourceStream(fullName);
+            using Stream resourceStream = thisType.Assembly.GetManifestResourceStream(fullName);
             using var reader = new StreamReader(resourceStream);
             return reader.ReadToEnd();
         }
