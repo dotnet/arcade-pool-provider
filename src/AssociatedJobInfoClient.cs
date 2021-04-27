@@ -29,6 +29,8 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
     public class AssociatedJobInfoClient
     {
+        private static readonly TimeSpan _maxTimeout = TimeSpan.FromSeconds(10);
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<AssociatedJobInfoClient> _logger;
 
@@ -42,13 +44,18 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         public async Task<AssociatedJobInfo> TryGetAssociatedJobInfo(
             string getAssociatedJobUrl,
-            string authenticationToken)
+            string authenticationToken,
+            TimeSpan? timeout = null)
         {
             try
             {
+                if (!timeout.HasValue || timeout.Value > _maxTimeout)
+                    timeout = _maxTimeout;
+
                 AgentRequestJob agentRequestJob = await TryGetAssociatedAgentRequestJob(
                     getAssociatedJobUrl,
-                    authenticationToken);
+                    authenticationToken,
+                    timeout.Value);
 
                 if (agentRequestJob != null)
                 {
@@ -68,13 +75,15 @@ namespace Microsoft.DotNet.HelixPoolProvider
 
         private async Task<AgentRequestJob> TryGetAssociatedAgentRequestJob(
             string getAssociatedJobUrl,
-            string authenticationToken)
+            string authenticationToken,
+            TimeSpan timeout)
         {
             if (!string.IsNullOrEmpty(getAssociatedJobUrl))
             {
                 _logger.LogInformation("Getting associated job from {AssociatedJobUrl}", getAssociatedJobUrl);
 
                 using HttpClient httpClient = _httpClientFactory.CreateClient();
+                httpClient.Timeout = timeout;
                 using var message = new HttpRequestMessage(HttpMethod.Get, getAssociatedJobUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authenticationToken);
                 using HttpResponseMessage response = await httpClient.SendAsync(message);

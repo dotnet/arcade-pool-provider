@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -86,6 +87,31 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
                 getAssociatedJobUrl: "https://dev.azure.com/dnceng/_apis/distributedtask/agentclouds/7/requests/a7344980-1166-4beb-8ab3-70521d838010/job?api-version=5.0-preview",
                 authenticationToken: "test");
 
+            Assert.NotNull(response);
+            Assert.Equal(string.Empty, response.BuildSourceBranch);
+            Assert.Equal(string.Empty, response.SystemPullRequestTargetBranch);
+        }
+
+        [Fact]
+        public async Task TestTimeoutHandling()
+        {
+            var httpRequestDuration = TimeSpan.FromSeconds(2);
+            var timeout = TimeSpan.FromMilliseconds(100);
+            var associatedJobInfoClient = new AssociatedJobInfoClient(
+                new StubHttpClientFactory(() => new TimeoutingHttpClient(httpRequestDuration)),
+                new NullLogger<AssociatedJobInfoClient>());
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            AssociatedJobInfo response = await associatedJobInfoClient.TryGetAssociatedJobInfo(
+                getAssociatedJobUrl: "https://dev.azure.com/dnceng/_apis/distributedtask/agentclouds/7/requests/a7344980-1166-4beb-8ab3-70521d838010/job?api-version=5.0-preview",
+                authenticationToken: "test",
+                timeout);
+
+            stopwatch.Stop();
+
+            Assert.True(stopwatch.Elapsed < httpRequestDuration, "HTTP call should timeout before completion");
             Assert.NotNull(response);
             Assert.Equal(string.Empty, response.BuildSourceBranch);
             Assert.Equal(string.Empty, response.SystemPullRequestTargetBranch);
