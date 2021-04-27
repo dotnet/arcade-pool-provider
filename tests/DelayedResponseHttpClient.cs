@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.HelixPoolProvider.Tests
 {
-    public class TimeoutingHttpClient : HttpClient
+    public class DelayedResponseHttpClient : HttpClient
     {
-        private class TimeoutingHttpMessageHandler : HttpMessageHandler
+        private class DelayedResponseHttpMessageHandler : HttpMessageHandler
         {
             private readonly TimeSpan _sleepDuration;
 
-            public TimeoutingHttpMessageHandler(TimeSpan sleepDuration)
+            public DelayedResponseHttpMessageHandler(TimeSpan sleepDuration)
             {
                 _sleepDuration = sleepDuration;
             }
@@ -29,8 +29,8 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
             }
         }
 
-        public TimeoutingHttpClient(TimeSpan sleepDuration)
-            : base(new TimeoutingHttpMessageHandler(sleepDuration))
+        public DelayedResponseHttpClient(TimeSpan sleepDuration)
+            : base(new DelayedResponseHttpMessageHandler(sleepDuration))
         {
         }
     }

@@ -98,7 +98,7 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
             var httpRequestDuration = TimeSpan.FromSeconds(2);
             var timeout = TimeSpan.FromMilliseconds(100);
             var associatedJobInfoClient = new AssociatedJobInfoClient(
-                new StubHttpClientFactory(() => new TimeoutingHttpClient(httpRequestDuration)),
+                new StubHttpClientFactory(() => new DelayedResponseHttpClient(httpRequestDuration)),
                 new NullLogger<AssociatedJobInfoClient>());
 
             var stopwatch = new Stopwatch();
