@@ -95,8 +95,8 @@ namespace Microsoft.DotNet.HelixPoolProvider.Tests
         [Fact]
         public async Task TestTimeoutHandling()
         {
-            var httpRequestDuration = TimeSpan.FromSeconds(2);
-            var timeout = TimeSpan.FromMilliseconds(100);
+            var httpRequestDuration = TimeSpan.FromSeconds(1);
+            var timeout = TimeSpan.FromMilliseconds(1);
             var associatedJobInfoClient = new AssociatedJobInfoClient(
                 new StubHttpClientFactory(() => new DelayedResponseHttpClient(httpRequestDuration)),
                 new NullLogger<AssociatedJobInfoClient>());
