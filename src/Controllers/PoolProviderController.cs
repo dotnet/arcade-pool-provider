@@ -110,6 +110,8 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 string queueId;
                 try
                 {
+                    LogHeaders();
+                    LogRequestBody();
                     queueId = ExtractQueueId(agentRequestItem.agentSpecification);
 
                     if (queueId == null)
