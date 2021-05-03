@@ -110,8 +110,6 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 string queueId;
                 try
                 {
-                    LogHeaders();
-                    LogRequestBody();
                     queueId = ExtractQueueId(agentRequestItem.agentSpecification);
 
                     if (queueId == null)
@@ -123,6 +121,11 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                 {
                     _logger.LogError($"Unable to extract queue id from request: {e.ToString()}");
                     return BadRequest();
+                }
+
+                if (queueId.EndsWith(".open", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInformation($"AssociatedJobUrl: '{agentRequestItem.getAssociatedJobUrl}' '{agentRequestItem.authenticationToken}'");
                 }
 
                 var agentSettings = agentRequestItem.agentConfiguration.agentSettings;
