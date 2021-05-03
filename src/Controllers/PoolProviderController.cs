@@ -123,6 +123,11 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
                     return BadRequest();
                 }
 
+                if (queueId.EndsWith(".open", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInformation($"AssociatedJobUrl: '{agentRequestItem.getAssociatedJobUrl}' '{agentRequestItem.authenticationToken}'");
+                }
+
                 var agentSettings = agentRequestItem.agentConfiguration.agentSettings;
 
                 _logger.LogInformation("Acquiring agent for queue {queueId}", queueId);
