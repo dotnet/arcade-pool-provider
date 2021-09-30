@@ -27,12 +27,12 @@ namespace Microsoft.DotNet.HelixPoolProvider
         protected IHelixApi _api;
         protected ILogger _logger;
         protected Config _configuration;
-        protected IHostingEnvironment _hostingEnvironment;
+        protected IWebHostEnvironment _hostingEnvironment;
         protected string _orchestrationId;
         protected string _jobName;
 
         protected HelixJobCreator(AgentAcquireItem agentRequestItem, QueueInfo queueInfo, IHelixApi api,
-            ILoggerFactory loggerFactory, IHostingEnvironment hostingEnvironment,
+            ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnvironment,
             Config configuration, string orchestrationId, string jobName)
         {
             _agentRequestItem = agentRequestItem;
