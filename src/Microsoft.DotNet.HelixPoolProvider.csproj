@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+    <NoWarn>$(NoWarn);netsdk1138</NoWarn>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
   
