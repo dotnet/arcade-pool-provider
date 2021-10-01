@@ -26,9 +26,9 @@ namespace Microsoft.DotNet.HelixPoolProvider.Controllers
         private ILogger _logger;
         private ILoggerFactory _loggerFactory;
         private Config _configuration;
-        private IWebHostEnvironment _hostingEnvironment;
+        private IHostingEnvironment _hostingEnvironment;
 
-        public PoolProviderController(ILoggerFactory loggerFactory, IConfiguration config, IWebHostEnvironment hostingEnvironment)
+        public PoolProviderController(ILoggerFactory loggerFactory, IConfiguration config, IHostingEnvironment hostingEnvironment)
         {
             _logger = loggerFactory.CreateLogger<PoolProviderController>();
             _loggerFactory = loggerFactory;
