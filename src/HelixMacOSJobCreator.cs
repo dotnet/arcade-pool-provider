@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
     public class HelixMacOSJobCreator : HelixJobCreator
     {
         public HelixMacOSJobCreator(AgentAcquireItem agentRequestItem, QueueInfo queueInfo, IHelixApi api,
-            ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnvironment,
+            ILoggerFactory loggerFactory, IHostingEnvironment hostingEnvironment,
             Config configuration, string orchestrationId, string jobName)
             : base(agentRequestItem, queueInfo, api, loggerFactory, hostingEnvironment, configuration, orchestrationId, jobName) { }
 
