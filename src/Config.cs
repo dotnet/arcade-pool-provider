@@ -81,7 +81,7 @@ namespace Microsoft.DotNet.HelixPoolProvider
                 catch (Exception e)
                 {
                     _logger.LogError(e, $"Failed to obtain secret {secretName} from keyvault");
-                    throw e;
+                    throw;
                 }
             }
         }
